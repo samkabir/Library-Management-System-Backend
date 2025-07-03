@@ -2,7 +2,7 @@
 
 ### 🎯 This project is a **Library Management System** using **Express**, **TypeScript**, and **MongoDB (via Mongoose)**.
 
-✨ 🔧 Featues of this project
+### ✨ 🔧 Featues of this project
 
 - 30 Books has been added to the MongoDB database.
 - Proper schema validation
