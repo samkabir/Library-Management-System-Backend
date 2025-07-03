@@ -19,6 +19,14 @@ borrowRoutes.post('/', async (req: Request, res:Response) : Promise<any> => {
 
         }
 
+        if (!dueDate || new Date(dueDate) < new Date()) {
+            return res.status(400).json({
+                message: "Invalid due date",
+                success: false,
+                error: "Due date must be a future date"
+            });
+        }
+
         const hasCopies = (myBook as any).hascopies(quantity);
         myBook.available = hasCopies;
         if (!hasCopies) {
@@ -30,13 +38,7 @@ borrowRoutes.post('/', async (req: Request, res:Response) : Promise<any> => {
         }
         
 
-        if (!dueDate || new Date(dueDate) < new Date()) {
-            return res.status(400).json({
-                message: "Invalid due date",
-                success: false,
-                error: "Due date must be a future date"
-            });
-        }
+       
 
         myBook.copies -= quantity;
 

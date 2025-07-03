@@ -31,14 +31,47 @@ booksRoutes.get('/', async (req: Request, res: Response): Promise<any> => {
 
     const matchStage: any = {};
     if (filter) {
-      matchStage.genre = filter;
+        const allowedFilterTypes = ['FICTION', 'NON_FICTION', 'SCIENCE', 'HISTORY', 'BIOGRAPHY', 'FANTASY'] as const;
+
+        type SortField = typeof allowedFilterTypes[number];
+
+        if (!allowedFilterTypes.includes(filter as SortField)) {
+            return res.status(400).json({
+                message: `Invalid Filter value. Use one of: ${allowedFilterTypes.join(", ")}.`,
+                success: false,
+                error: `Invalid filter value: ${filter}`
+            });
+        }
+        matchStage.genre = filter;
+    }
+
+
+
+    if (sort && !["asc", "desc"].includes(sort as string)) {
+      return res.status(400).json({
+        message: "Invalid sort value. Use 'asc' or 'desc'.",
+        success: false,
+        error: `Invalid sort value: ${sort}`
+      });
+    }
+
+    const allowedSortByFields = [ "_id", "title", "author", "genre", "description", "copies", "isbn", "createdAt", "updatedAt", "available" ] as const;
+
+    type SortField = typeof allowedSortByFields[number];
+
+    if (!allowedSortByFields.includes(sortBy as SortField)) {
+        return res.status(400).json({
+            message: `Invalid sortBy value. Use one of: ${allowedSortByFields.join(", ")}.`,
+            success: false,
+            error: `Invalid sortBy value: ${sortBy}`
+        });
     }
 
     const sortStage: any = {
       [sortBy as string]: sort === "desc" ? -1 : 1
     };
 
-    const limitNumber = Math.max(1, parseInt(limit as string)) || 10;
+    const limitNumber = parseInt(limit as string, 10);
 
     const books = await Book.aggregate([
       { $match: matchStage },
@@ -81,14 +114,6 @@ booksRoutes.get('/:bookId', async (req: Request, res:Response) : Promise<any> =>
             });
         }
 
-        if (!book.available) {
-            return res.status(400).json({
-                message: "Book is not available",
-                success: false,
-                error: book
-            });
-        }
-
         res.status(200).json({
             success: true,
             message: "Book retrieved successfully",
@@ -111,18 +136,23 @@ booksRoutes.put('/:bookId', async (req: Request, res:Response) : Promise<any>=>{
         const bookId = req.params.bookId;
         const updatedBody = req.body;
 
-        if (updatedBody.isbn) {
-            const existingBook = await Book.findOne({ isbn: updatedBody.isbn, _id: { $ne: bookId } });
-            if (existingBook) {
+        if(updatedBody._id) {
             return res.status(400).json({
-                message: "ISBN must be unique",
+                message: "Cannot update _id field",
+                success: false,
+                error: "Cannot update _id field"
+            });
+        }
+        
+        const book = await Book.findByIdAndUpdate(bookId, updatedBody, { new : true, runValidators: true })
+
+          if (!book) {
+            return res.status(404).json({
+                message: "Book not found",
                 success: false,
                 error: updatedBody
             });
-            }
         }
-
-        const book = await Book.findByIdAndUpdate(bookId, updatedBody, { new : true, runValidators: true })
 
         res.status(200).json({
             success: true,
