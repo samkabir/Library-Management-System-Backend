@@ -36,6 +36,18 @@ bookSchema.pre('save', function (next) {
     }
     next();
 });
+bookSchema.pre('findOneAndUpdate', function (this: any, next: (err?: Error) => void) {
+    const update = this.getUpdate();
+    if (update && typeof update.copies === 'number') {
+        if (update.copies === 0) {
+            update.available = false;
+        } else {
+            update.available = true;
+        }
+        this.setUpdate(update);
+    }
+    next();
+});
 
 bookSchema.method("hascopies", function (copies: number): boolean {
      return this.copies >= copies;

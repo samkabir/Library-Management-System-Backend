@@ -8,6 +8,29 @@ export const borrowRoutes = express.Router();
 borrowRoutes.post('/', async (req: Request, res:Response) : Promise<any> => {
     try {
         const { book, quantity, dueDate } = req.body;
+
+        const allowedKeysInBody = ["book", "quantity", "dueDate"];
+        const invalidKeysInBody = Object.keys(req.body).filter(
+            (param) => !allowedKeysInBody.includes(param)
+        );
+
+        if (invalidKeysInBody.length > 0) {
+            return res.status(400).json({
+                message: `Invalid object key(s) in body: ${invalidKeysInBody.join(", ")}`,
+                success: false,
+                error: `Invalid  object key(s) in body: ${invalidKeysInBody.join(", ")}`
+            });
+        }
+
+        if (!book || !quantity || !dueDate) {
+            return res.status(400).json({
+                message: "Book, quantity, and due date are required",
+                success: false,
+                error: "Missing required fields"
+            });
+        }
+
+
         const myBook = await Book.findById(book)
 
         if(!myBook) {

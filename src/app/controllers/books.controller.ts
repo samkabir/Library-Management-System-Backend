@@ -29,6 +29,20 @@ booksRoutes.get('/', async (req: Request, res: Response): Promise<any> => {
   try {
     const { filter, sortBy = "createdAt", sort = "asc", limit = "10" } = req.query;
 
+    const allowedQueryParams = ["filter", "sortBy", "sort", "limit"];
+    const invalidQueryParams = Object.keys(req.query).filter(
+        (param) => !allowedQueryParams.includes(param)
+    );
+
+    if (invalidQueryParams.length > 0) {
+        return res.status(400).json({
+            message: `Invalid query parameter(s): ${invalidQueryParams.join(", ")}`,
+            success: false,
+            error: `Invalid query parameter(s): ${invalidQueryParams.join(", ")}`
+        });
+    }
+
+
     const matchStage: any = {};
     if (filter) {
         const allowedFilterTypes = ['FICTION', 'NON_FICTION', 'SCIENCE', 'HISTORY', 'BIOGRAPHY', 'FANTASY'] as const;
@@ -135,6 +149,44 @@ booksRoutes.put('/:bookId', async (req: Request, res:Response) : Promise<any>=>{
     try {
         const bookId = req.params.bookId;
         const updatedBody = req.body;
+       
+        const allowedFields = ["title", "author", "genre", "description", "copies", "isbn", "available", "createdAt", "updatedAt"];
+        const invalidFields = Object.keys(updatedBody).filter(field => !allowedFields.includes(field));
+
+        if (invalidFields.length > 0) {
+            return res.status(400).json({
+                message: `Invalid fields: ${invalidFields.join(", ")}`,
+                success: false,
+                error: `Invalid fields: ${invalidFields.join(", ")}`
+            });
+        }
+
+        for (const dateField of ["createdAt", "updatedAt"]) {
+            if (updatedBody[dateField] !== undefined) {
+            const value = updatedBody[dateField];
+            if (
+                (typeof value !== "string") ||
+                isNaN(new Date(value).getTime())
+            ) {
+                return res.status(400).json({
+                message: `Invalid value for ${dateField}`,
+                success: false,
+                error: `${dateField} must be a valid date string or timestamp`
+                });
+            }
+            }
+        }
+
+        const stringFields = ["title", "author", "genre", "description", "isbn"];
+        for (const field of stringFields) {
+            if (updatedBody[field] && typeof updatedBody[field] !== 'string') {
+                return res.status(400).json({
+                    message: `${field} must be a string`,
+                    success: false,
+                    error: `${field} must be a string`
+                });
+            }
+        }
 
         if(updatedBody._id) {
             return res.status(400).json({
