@@ -36,9 +36,6 @@ borrowRoutes.post('/', async (req: Request, res:Response) : Promise<any> => {
                 error: "Not enough copies available"
             });
         }
-        
-
-       
 
         myBook.copies -= quantity;
 
