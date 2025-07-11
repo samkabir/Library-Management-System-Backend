@@ -6,6 +6,12 @@ import cors from 'cors';
 
 const app: Application = express();
 
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'live-deploy-url']
+   })
+);
+
 app.use(express.json())
 
 app.use("/api/books", booksRoutes);
@@ -24,11 +30,7 @@ app.use((req: Request, res: Response) => {
     });
 });
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'live-deploy-url']
-   })
-);
+
 
 
 export default app;
