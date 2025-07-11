@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 import { booksRoutes } from './app/controllers/books.controller';
 import { borrowRoutes } from './app/controllers/borrow.controller';
+import cors from 'cors';
+
 
 const app: Application = express();
 
@@ -21,5 +23,12 @@ app.use((req: Request, res: Response) => {
         error: "Not Found"
     });
 });
+
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'live-deploy-url']
+   })
+);
+
 
 export default app;
